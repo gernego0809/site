@@ -1,6 +1,6 @@
 {
-  "name": "Моё простое PWA",
-  "short_name": "PWA",
+  "name": "PWA с уведомлениями",
+  "short_name": "PWA Notify",
   "start_url": "https://gernego0809.github.io/site/",
   "display": "standalone",
   "theme_color": "#007acc",
