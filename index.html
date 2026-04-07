@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Моё первое PWA</title>
+    <link rel="manifest" href="manifest.json">
+    <!-- Иконка для рабочего стола (заглушка) -->
+    <link rel="apple-touch-icon" href="icon.png">
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            text-align: center;
+            padding: 2rem;
+            background: #f0f0f0;
+        }
+        h1 { color: #333; }
+        button {
+            font-size: 1.5rem;
+            padding: 0.5rem 1rem;
+            background: #007acc;
+            color: white;
+            border: none;
+            border-radius: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 PWA работает!</h1>
+    <p>Это приложение можно установить на телефон</p>
+    <button onclick="alert('Привет из PWA!')">Нажми меня</button>
+    <p style="margin-top: 2rem; font-size: 0.8rem;">Работает офлайн ✅</p>
+
+    <script>
+        // Регистрация Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(() => console.log('SW зарегистрирован'))
+                .catch(err => console.log('Ошибка SW:', err));
+        }
+    </script>
+</body>
+</html>
