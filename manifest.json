@@ -1,7 +1,7 @@
 {
   "name": "Моё простое PWA",
   "short_name": "PWA",
-  "start_url": "/index.html",
+  "start_url": "/site/index.html",
   "display": "standalone",
   "theme_color": "#007acc",
   "background_color": "#ffffff",
