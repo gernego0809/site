@@ -3,7 +3,7 @@ const CACHE_NAME = 'pwa-cache-v1';
 // Установка Service Worker
 self.addEventListener('install', event => {
     console.log('Service Worker установлен');
-    self.skipWaiting(); // Сразу активируем
+    self.skipWaiting();
 });
 
 // Активация
