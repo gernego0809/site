@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Моё первое PWA</title>
+    <title>PWA с уведомлениями</title>
     <link rel="manifest" href="manifest.json">
-    <!-- Иконка для рабочего стола (заглушка) -->
     <link rel="apple-touch-icon" href="icon.png">
     <style>
         body {
@@ -22,22 +21,142 @@
             color: white;
             border: none;
             border-radius: 12px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
-    <h1>🚀 PWA работает!</h1>
-    <p>Это приложение можно установить на телефон</p>
-    <button onclick="alert('Привет из PWA!')">Нажми меня</button>
-    <p style="margin-top: 2rem; font-size: 0.8rem;">Работает офлайн ✅</p>
+    <h1>🔔 PWA с уведомлениями</h1>
+    <p>Нажмите кнопку, чтобы получить push-уведомление</p>
+    
+    <button id="notifyBtn" disabled>Разрешить уведомления</button>
+    <button id="testNotifyBtn" disabled>📨 Отправить тестовое уведомление</button>
+    
+    <div id="status">⏳ Проверка поддержки уведомлений...</div>
 
     <script>
         // Регистрация Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js')
-                .then(() => console.log('SW зарегистрирован'))
-                .catch(err => console.log('Ошибка SW:', err));
+        let swRegistration = null;
+        
+        async function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    swRegistration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('SW зарегистрирован:', swRegistration);
+                    
+                    // Проверяем поддержку push
+                    if ('PushManager' in window) {
+                        document.getElementById('status').textContent = '✅ Push-уведомления поддерживаются';
+                        document.getElementById('notifyBtn').disabled = false;
+                    } else {
+                        document.getElementById('status').textContent = '❌ Push-уведомления не поддерживаются';
+                    }
+                } catch (error) {
+                    console.error('Ошибка регистрации SW:', error);
+                    document.getElementById('status').textContent = '❌ Ошибка регистрации SW';
+                }
+            }
         }
+        
+        // Запрос разрешения на уведомления
+        async function requestNotificationPermission() {
+            const permission = await Notification.requestPermission();
+            
+            if (permission === 'granted') {
+                document.getElementById('status').textContent = '✅ Разрешение на уведомления получено';
+                document.getElementById('testNotifyBtn').disabled = false;
+                
+                // Подписываемся на push-уведомления
+                await subscribeUserToPush();
+            } else {
+                document.getElementById('status').textContent = '❌ Нет разрешения на уведомления';
+            }
+        }
+        
+        // Подписка на push-уведомления
+        async function subscribeUserToPush() {
+            if (!swRegistration) return;
+            
+            try {
+                const subscription = await swRegistration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: urlBase64ToUint8Array('ВАШ_VAPID_ПУБЛИЧНЫЙ_КЛЮЧ')
+                });
+                
+                console.log('Подписка получена:', subscription);
+                
+                // Отправляем подписку на сервер (если есть)
+                await saveSubscriptionToServer(subscription);
+                
+                document.getElementById('status').innerHTML += '<br>📱 Подписка на push оформлена';
+            } catch (error) {
+                console.error('Ошибка подписки:', error);
+                document.getElementById('status').innerHTML += '<br>❌ Ошибка подписки: ' + error.message;
+            }
+        }
+        
+        // Сохранение подписки на сервере (опционально)
+        async function saveSubscriptionToServer(subscription) {
+            // Здесь можно отправить subscription на ваш сервер
+            // для отправки push-уведомлений из бэкенда
+            console.log('Подписка для сервера:', subscription);
+        }
+        
+        // Тестовое уведомление (локальное, без сервера)
+        function showLocalNotification() {
+            if (Notification.permission === 'granted') {
+                // Показываем уведомление через Service Worker
+                if (swRegistration && swRegistration.active) {
+                    swRegistration.active.postMessage({
+                        type: 'SHOW_NOTIFICATION',
+                        title: '🔔 Привет из PWA!',
+                        body: 'Это тестовое уведомление',
+                        icon: '/icon.png',
+                        badge: '/icon.png'
+                    });
+                } else {
+                    // Fallback: обычное уведомление
+                    new Notification('🔔 Привет из PWA!', {
+                        body: 'Это тестовое уведомление',
+                        icon: '/icon.png',
+                        badge: '/icon.png'
+                    });
+                }
+            }
+        }
+        
+        // Вспомогательная функция: конвертация base64 в Uint8Array
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+        
+        // Инициализация
+        registerServiceWorker();
+        
+        // Обработчики кнопок
+        document.getElementById('notifyBtn').addEventListener('click', requestNotificationPermission);
+        document.getElementById('testNotifyBtn').addEventListener('click', showLocalNotification);
     </script>
 </body>
 </html>
