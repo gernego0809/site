@@ -1,110 +1,59 @@
-const CACHE_NAME = 'pwa-cache-v1';
-
-// Установка Service Worker
 self.addEventListener('install', event => {
-    console.log('Service Worker установлен');
     self.skipWaiting();
 });
 
-// Активация
 self.addEventListener('activate', event => {
-    console.log('Service Worker активирован');
-    event.waitUntil(clients.claim()); // Захватываем контроль
+    event.waitUntil(clients.claim());
 });
 
-// Обработка сообщений от страницы
-self.addEventListener('message', event => {
-    if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
-        self.registration.showNotification(event.data.title, {
-            body: event.data.body,
-            icon: event.data.icon || '/icon.png',
-            badge: event.data.badge || '/icon.png',
-            vibrate: [200, 100, 200], // Вибрация на телефоне
-            tag: 'simple-pwa-notification', // Группировка уведомлений
-            data: {
-                url: '/'
-            }
-        });
-    }
-});
-
-// Обработка push-событий (от сервера)
 self.addEventListener('push', event => {
-    let data = {
-        title: 'Новое уведомление',
-        body: 'У вас новое сообщение',
-        icon: '/icon.png',
-        badge: '/icon.png'
-    };
-    
-    // Парсим данные из push-сообщения
+    let data = { title: 'Новое уведомление', body: 'Сообщение от PWA', icon: '/icons/icon-192.png' };
     if (event.data) {
         try {
             data = event.data.json();
-        } catch (e) {
+        } catch(e) {
             data.body = event.data.text();
         }
     }
     
+    const options = {
+        body: data.body,
+        icon: data.icon,
+        badge: '/icons/icon-192.png',
+        vibrate: [200, 100, 200],
+        data: { url: data.url || '/' }
+    };
+    
     event.waitUntil(
-        self.registration.showNotification(data.title, {
-            body: data.body,
-            icon: data.icon,
-            badge: data.badge,
-            vibrate: [200, 100, 200],
-            tag: data.tag || 'push-notification',
-            data: {
-                url: data.url || '/'
-            }
-        })
+        self.registration.showNotification(data.title, options)
     );
 });
 
-// Обработка клика по уведомлению
 self.addEventListener('notificationclick', event => {
     event.notification.close();
-    
-    // Открываем приложение при клике
+    const urlToOpen = event.notification.data.url || '/';
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then(windowClients => {
-                // Если уже есть открытое окно, фокусируем его
                 for (let client of windowClients) {
-                    if (client.url === '/' && 'focus' in client) {
+                    if (client.url === urlToOpen && 'focus' in client) {
                         return client.focus();
                     }
                 }
-                // Иначе открываем новое
                 if (clients.openWindow) {
-                    return clients.openWindow(event.notification.data.url || '/');
+                    return clients.openWindow(urlToOpen);
                 }
             })
     );
 });
 
-// Кеширование запросов (как в прошлый раз)
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) {
-                    return response;
-                }
-                return fetch(event.request).then(networkResponse => {
-                    if (event.request.method === 'GET' && networkResponse.status === 200) {
-                        const responseClone = networkResponse.clone();
-                        caches.open(CACHE_NAME).then(cache => {
-                            cache.put(event.request, responseClone);
-                        });
-                    }
-                    return networkResponse;
-                });
-            })
-            .catch(() => {
-                return new Response('Вы офлайн, но уведомления работают!', {
-                    status: 200,
-                    headers: { 'Content-Type': 'text/plain' }
-                });
-            })
-    );
+// Демо-отправка из клиента (только для теста, без реального сервера)
+self.addEventListener('message', event => {
+    if (event.data.type === 'TEST_PUSH') {
+        self.registration.showNotification('Тест PWA', {
+            body: 'Это тестовое уведомление от вашего PWA!',
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192.png'
+        });
+    }
 });
