@@ -1,160 +1,446 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>PWA Push Demo</title>
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4CAF50">
-    <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            text-align: center;
-            padding: 2rem;
-            max-width: 600px;
-            margin: 0 auto;
-            background: #f5f5f5;
-        }
-        button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 1.2rem;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 10px;
-            transition: 0.2s;
-        }
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        button:hover:not(:disabled) {
-            background: #45a049;
-        }
-        .status {
-            margin: 20px 0;
-            padding: 12px;
-            border-radius: 8px;
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .success { color: green; }
-        .error { color: red; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>PWA Push Demo</title>
+  <!-- PWA manifest link -->
+  <link rel="manifest" href="manifest.json">
+  <!-- Theme color for browser UI -->
+  <meta name="theme-color" content="#4a90e2">
+  <!-- Favicon / Apple touch icon (простой emoji стиль) -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%234a90e2'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='white'%3E🔔%3C/text%3E%3C/svg%3E">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, sans-serif;
+      background: linear-gradient(145deg, #f5f7fc 0%, #eef2f8 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      max-width: 550px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(2px);
+      border-radius: 48px;
+      padding: 32px 24px 40px;
+      box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25), 0 2px 5px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #1e2b3c, #2c5a7a);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      margin-bottom: 12px;
+    }
+
+    .sub {
+      color: #4a627a;
+      margin-bottom: 32px;
+      font-weight: 500;
+      border-bottom: 1px solid #e2e8f0;
+      display: inline-block;
+      padding-bottom: 6px;
+    }
+
+    .status-box {
+      background: #f0f4f9;
+      border-radius: 60px;
+      padding: 12px 20px;
+      margin: 20px 0;
+      font-size: 0.95rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .status-badge {
+      background: #e9ecef;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 12px;
+      margin-right: 8px;
+      background: #adb5bd;
+      box-shadow: 0 0 0 1px white;
+    }
+
+    .indicator.active {
+      background: #2b9348;
+      box-shadow: 0 0 0 2px #b7efc5;
+    }
+
+    button {
+      background: #1e4663;
+      border: none;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 14px 24px;
+      border-radius: 50px;
+      cursor: pointer;
+      margin: 12px 8px;
+      transition: 0.2s;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button:active {
+      transform: scale(0.96);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      transform: none;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: #2c6e9e;
+      box-shadow: 0 6px 14px rgba(44, 110, 158, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #1f5a85;
+      transform: translateY(-2px);
+    }
+
+    .btn-test {
+      background: #3f8f6b;
+    }
+
+    .btn-test:hover:not(:disabled) {
+      background: #2f7253;
+    }
+
+    .subscription-info {
+      background: #eef2f6;
+      border-radius: 24px;
+      padding: 18px;
+      margin: 24px 0 12px;
+      font-size: 0.75rem;
+      font-family: monospace;
+      word-break: break-all;
+      text-align: left;
+      color: #1e2f3c;
+      border: 1px solid #cbdbe0;
+    }
+
+    .log-area {
+      background: #1a2a36;
+      color: #b3e4ff;
+      border-radius: 20px;
+      padding: 16px;
+      font-size: 0.75rem;
+      font-family: monospace;
+      text-align: left;
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+
+    .flex-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    footer {
+      font-size: 0.7rem;
+      margin-top: 24px;
+      color: #6c7f8f;
+    }
+  </style>
 </head>
 <body>
-    <h1>📱 PWA Push Demo</h1>
-    <div class="status" id="status">
-        Проверка поддержки...
-    </div>
-    <button id="subscribeBtn" disabled>🔔 Подписаться на уведомления</button>
-    <button id="testPushBtn" disabled>📨 Отправить тестовое уведомление</button>
+<div class="card">
+  <h1>🔔 Push Notifier</h1>
+  <div class="sub">PWA с уведомлениями</div>
 
-    <script>
-        let swRegistration = null;
-        let isSubscribed = false;
+  <div class="status-box">
+    <span><span class="indicator" id="swIndicator"></span> Service Worker</span>
+    <span><span class="indicator" id="pushIndicator"></span> Push поддержка</span>
+    <span class="status-badge" id="subStatus">❌ Не подписан</span>
+  </div>
 
-        const applicationServerPublicKey = 'BEl62iUY3UxqOg7Jc6x6kD9aR3wLqX8VzJmN2pQrS7tUvW1xYzA2bC3dE4fG5hI6jK7lM8nO9pQ'; // Demo ключ (замените на свой)
+  <div class="flex-buttons">
+    <button id="subscribeBtn" class="btn-primary">✅ Разрешить уведомления</button>
+    <button id="testPushBtn" class="btn-test" disabled>📨 Отправить тест-пуш</button>
+  </div>
+  <div class="flex-buttons">
+    <button id="unsubscribeBtn" style="background:#5f6c7a;">🚫 Отписаться</button>
+  </div>
 
-        function urlBase64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-            for (let i = 0; i < rawData.length; ++i) {
-                outputArray[i] = rawData.charCodeAt(i);
-            }
-            return outputArray;
+  <div id="subscriptionDetails" class="subscription-info" style="display: none;">
+    <strong>📡 Активная подписка (endpoint)</strong><br>
+    <span id="endpointShort">—</span>
+  </div>
+
+  <div class="log-area" id="log">
+    📌 Журнал событий:<br>
+    • Ожидание инициализации...
+  </div>
+  <footer>Установите приложение (Добавить на экран "Домой") для получения push</footer>
+</div>
+
+<script>
+  // ---------- Логирование ----------
+  const logDiv = document.getElementById('log');
+  function addLog(msg, isError = false) {
+    const entry = document.createElement('div');
+    entry.innerHTML = `• ${new Date().toLocaleTimeString()} ${msg}`;
+    if (isError) entry.style.color = "#ffb7b7";
+    else entry.style.color = "#c7e9ff";
+    logDiv.appendChild(entry);
+    entry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    console.log(msg);
+  }
+
+  // DOM элементы
+  const subscribeBtn = document.getElementById('subscribeBtn');
+  const testPushBtn = document.getElementById('testPushBtn');
+  const unsubscribeBtn = document.getElementById('unsubscribeBtn');
+  const subStatusSpan = document.getElementById('subStatus');
+  const swIndicatorSpan = document.getElementById('swIndicator');
+  const pushIndicatorSpan = document.getElementById('pushIndicator');
+  const subscriptionDetailsDiv = document.getElementById('subscriptionDetails');
+  const endpointShortSpan = document.getElementById('endpointShort');
+
+  // Состояние
+  let swRegistration = null;
+  let isSubscribed = false;
+  let currentSubscription = null;
+  let applicationServerKey = null;
+
+  const publicVapidKey = 'BDSVbcLCVq6IJFyy7HIR0Y9S-gQqVU36S13cQpR7sN72paL8eS4X4fHlqWYq47aUM_pOtAmaZufISIBZkJYBwnQ';
+  
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  // Обновление UI статуса подписки
+  function updateUI() {
+    if (isSubscribed && currentSubscription) {
+      subStatusSpan.innerHTML = '✅ ПОДПИСАН';
+      subStatusSpan.style.background = '#c8f0e1';
+      testPushBtn.disabled = false;
+      subscribeBtn.disabled = true;
+      unsubscribeBtn.disabled = false;
+      const endpoint = currentSubscription.endpoint;
+      let short = endpoint.substring(0, 45) + '...' + endpoint.substring(endpoint.length - 20);
+      endpointShortSpan.innerText = short;
+      subscriptionDetailsDiv.style.display = 'block';
+    } else {
+      subStatusSpan.innerHTML = '❌ Нет подписки';
+      subStatusSpan.style.background = '#f0d6d6';
+      testPushBtn.disabled = true;
+      subscribeBtn.disabled = false;
+      unsubscribeBtn.disabled = true;
+      subscriptionDetailsDiv.style.display = 'none';
+    }
+  }
+
+  // Подписка на push уведомления
+  async function subscribeToPush() {
+    if (!swRegistration) {
+      addLog('❌ Service Worker не зарегистрирован', true);
+      return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') {
+        addLog('⚠️ Разрешение на уведомления не получено', true);
+        alert('Необходимо разрешить уведомления для работы PWA Push');
+        return;
+      }
+      const existingSubscription = await swRegistration.pushManager.getSubscription();
+      if (existingSubscription) {
+        addLog('📌 Уже есть активная подписка, отпишитесь сначала');
+        currentSubscription = existingSubscription;
+        isSubscribed = true;
+        updateUI();
+        return;
+      }
+      const applicationServerKeyConverted = urlBase64ToUint8Array(publicVapidKey);
+      const subscription = await swRegistration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: applicationServerKeyConverted
+      });
+      addLog('✅ Подписка создана! Endpoint: ' + subscription.endpoint.substring(0, 50) + '...');
+      currentSubscription = subscription;
+      isSubscribed = true;
+      // Сохраняем подписку в localStorage для демонстрации (необязательно)
+      localStorage.setItem('pushSubscription', JSON.stringify(subscription));
+      updateUI();
+      addLog('🔔 Теперь вы можете получать реальные push-уведомления от сервера. Для теста через GitHub Pages, клик "Отправить тест-пуш" вызовет локальное уведомление (имитация push).');
+    } catch (err) {
+      addLog(`❌ Ошибка подписки: ${err.message}`, true);
+      console.error(err);
+    }
+  }
+
+  async function unsubscribePush() {
+    if (!swRegistration) return;
+    try {
+      const subscription = await swRegistration.pushManager.getSubscription();
+      if (subscription) {
+        await subscription.unsubscribe();
+        addLog('🔕 Подписка отменена');
+        currentSubscription = null;
+        isSubscribed = false;
+        localStorage.removeItem('pushSubscription');
+        updateUI();
+      } else {
+        addLog('Нет активной подписки');
+        isSubscribed = false;
+        updateUI();
+      }
+    } catch (err) {
+      addLog(`Ошибка отписки: ${err.message}`, true);
+    }
+  }
+
+  // Отправка тестового уведомления через Service Worker (локальное уведомление, имитация пуш)
+  async function sendTestNotification() {
+    if (!swRegistration) {
+      addLog('Service Worker не готов', true);
+      return;
+    }
+    if (!isSubscribed) {
+      addLog('Сначала подпишитесь на уведомления', true);
+      alert('Нажмите "Разрешить уведомления" и разрешите доступ');
+      return;
+    }
+    // Проверяем разрешение отдельно
+    if (Notification.permission !== 'granted') {
+      addLog('Нет разрешения на уведомления', true);
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') return;
+    }
+    // Через service worker показываем уведомление
+    if (swRegistration.active) {
+      swRegistration.active.postMessage({
+        type: 'SHOW_NOTIFICATION',
+        title: '🔔 Тестовое PWA уведомление',
+        body: 'Это демо-пуш. При реальной работе push отправляется с сервера.',
+        icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%234a90e2"/%3E%3Ctext x="50" y="67" font-size="50" text-anchor="middle" fill="white"%3E🔔%3C/text%3E%3C/svg%3E',
+        badge: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%234a90e2"/%3E%3Ctext x="50" y="67" font-size="50" text-anchor="middle" fill="white"%3E🔔%3C/text%3E%3C/svg%3E'
+      });
+      addLog('📨 Отправлен запрос на показ уведомления через Service Worker');
+    } else {
+      // fallback напрямую
+      new Notification('🔔 Тестовое уведомление', { body: 'PWA активна, но SW не отвечает', icon: '/favicon.ico' });
+      addLog('⚠️ показано обычное уведомление');
+    }
+  }
+
+  // Инициализация Service Worker и проверка возможностей
+  async function initServiceWorker() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      addLog('❌ Браузер не поддерживает Service Worker или Push API', true);
+      swIndicatorSpan.style.background = '#ff8c8c';
+      pushIndicatorSpan.style.background = '#ff8c8c';
+      return false;
+    }
+    pushIndicatorSpan.classList.add('active');
+    pushIndicatorSpan.style.background = '#2b9348';
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      swRegistration = registration;
+      addLog('✅ Service Worker зарегистрирован');
+      swIndicatorSpan.classList.add('active');
+      swIndicatorSpan.style.background = '#2b9348';
+      
+      // Проверим существующую подписку
+      const subscription = await swRegistration.pushManager.getSubscription();
+      if (subscription) {
+        currentSubscription = subscription;
+        isSubscribed = true;
+        addLog('🔁 Восстановлена существующая подписка на push');
+        updateUI();
+      } else {
+        isSubscribed = false;
+        updateUI();
+      }
+      
+      // Добавляем обработчик сообщений от SW (необязательно)
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'NOTIFICATION_SHOWN') {
+          addLog('🔔 Уведомление успешно показано через Service Worker');
         }
+      });
+      
+      return true;
+    } catch (err) {
+      addLog(`❌ Ошибка регистрации SW: ${err.message}`, true);
+      swIndicatorSpan.style.background = '#ff8c8c';
+      return false;
+    }
+  }
 
-        async function subscribeUser() {
-            try {
-                const applicationServerKey = urlBase64ToUint8Array(applicationServerPublicKey);
-                const subscription = await swRegistration.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: applicationServerKey
-                });
-                console.log('Подписка:', subscription);
-                // Отправьте subscription на сервер (здесь просто логируем)
-                localStorage.setItem('pushSubscription', JSON.stringify(subscription));
-                updateStatus('✅ Подписка активна', 'success');
-                isSubscribed = true;
-                updateButtons();
-            } catch (err) {
-                console.error('Ошибка подписки:', err);
-                updateStatus('❌ Ошибка подписки: ' + err.message, 'error');
-            }
-        }
+  // Дополнительно: проверка поддержки Push
+  function checkSupport() {
+    const isPushSupported = 'PushManager' in window && 'serviceWorker' in navigator;
+    if (!isPushSupported) {
+      pushIndicatorSpan.style.background = '#bbb';
+      addLog('⚠️ PushManager не поддерживается', true);
+    } else {
+      pushIndicatorSpan.classList.add('active');
+    }
+  }
+  
+  // Запуск
+  window.addEventListener('load', async () => {
+    checkSupport();
+    await initServiceWorker();
+    subscribeBtn.addEventListener('click', subscribeToPush);
+    unsubscribeBtn.addEventListener('click', unsubscribePush);
+    testPushBtn.addEventListener('click', sendTestNotification);
+  });
+</script>
 
-        function updateStatus(message, type = '') {
-            const statusDiv = document.getElementById('status');
-            statusDiv.textContent = message;
-            statusDiv.className = `status ${type}`;
-        }
-
-        function updateButtons() {
-            const subscribeBtn = document.getElementById('subscribeBtn');
-            const testBtn = document.getElementById('testPushBtn');
-            if (isSubscribed) {
-                subscribeBtn.textContent = '✅ Подписан';
-                subscribeBtn.disabled = true;
-                testBtn.disabled = false;
-            } else {
-                subscribeBtn.textContent = '🔔 Подписаться на уведомления';
-                subscribeBtn.disabled = false;
-                testBtn.disabled = true;
-            }
-        }
-
-        async function sendTestPush() {
-            const subscription = localStorage.getItem('pushSubscription');
-            if (!subscription) {
-                updateStatus('Нет активной подписки', 'error');
-                return;
-            }
-            // Здесь должен быть запрос к вашему серверу
-            // Для демо на localhost используем имитацию
-            if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
-                // Имитация отправки через Service Worker (только для демо)
-                swRegistration.active.postMessage({
-                    type: 'TEST_PUSH',
-                    subscription: JSON.parse(subscription)
-                });
-                updateStatus('📨 Демо-уведомление отправлено (имитация)', 'success');
-            } else {
-                updateStatus('Для реальных push нужен HTTPS и сервер', 'error');
-            }
-        }
-
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
-            updateStatus('✅ PWA и Push поддерживаются');
-            navigator.serviceWorker.register('/sw.js')
-                .then(reg => {
-                    swRegistration = reg;
-                    updateStatus('Service Worker зарегистрирован');
-                    return swRegistration.pushManager.getSubscription();
-                })
-                .then(subscription => {
-                    if (subscription) {
-                        isSubscribed = true;
-                        updateStatus('✅ Уже подписаны', 'success');
-                    } else {
-                        isSubscribed = false;
-                        updateStatus('Можно подписаться на уведомления');
-                    }
-                    updateButtons();
-                })
-                .catch(err => {
-                    updateStatus('Ошибка: ' + err.message, 'error');
-                });
-        } else {
-            updateStatus('❌ Ваш браузер не поддерживает PWA Push', 'error');
-        }
-
-        document.getElementById('subscribeBtn').addEventListener('click', subscribeUser);
-        document.getElementById('testPushBtn').addEventListener('click', sendTestPush);
-    </script>
+<script>
+  // Дополнительно обработаем смену состояния сети
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(reg => {
+      console.log('SW ready');
+    });
+  }
+</script>
 </body>
 </html>
