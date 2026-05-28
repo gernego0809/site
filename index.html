@@ -362,11 +362,32 @@
     pushIndicatorSpan.style.background = '#2b9348';
     
     try {
-      const registration = await navigator.serviceWorker.register('/sw.js');
+      // Определяем базовый путь для Service Worker
+      const basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+      const swPath = basePath + 'sw.js';
+      
+      addLog(`🔄 Регистрация SW по пути: ${swPath}`);
+      
+      const registration = await navigator.serviceWorker.register(swPath, { scope: basePath });
       swRegistration = registration;
       addLog('✅ Service Worker зарегистрирован');
       swIndicatorSpan.classList.add('active');
       swIndicatorSpan.style.background = '#2b9348';
+      
+      // Ждем активации Service Worker
+      if (registration.active) {
+        addLog('✅ SW активен');
+      } else {
+        await new Promise(resolve => {
+          const checkActive = setInterval(() => {
+            if (registration.active) {
+              clearInterval(checkActive);
+              resolve();
+            }
+          }, 100);
+        });
+        addLog('✅ SW активирован');
+      }
       
       const subscription = await swRegistration.pushManager.getSubscription();
       if (subscription) {
