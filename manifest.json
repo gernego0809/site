@@ -2,7 +2,7 @@
   "name": "PWA Push Notifier",
   "short_name": "PushNotifier",
   "description": "Простое PWA с push-уведомлениями",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "theme_color": "#4a90e2",
   "background_color": "#ffffff",
