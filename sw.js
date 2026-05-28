@@ -59,7 +59,6 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Обработка тестовых сообщений от страницы
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
     self.registration.showNotification(event.data.title, {
